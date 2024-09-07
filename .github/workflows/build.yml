@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Login to Scaleway Container Registry
-      run:  docker login rg.fr-par.scw.cloud/atut-group-1 -u nologin --password-stdin <<< "$SCW_SECRET_KEY"
+      run:  echo $${{ secrets.SCW_SECRET_KEY}} | docker login rg.fr-par.scw.cloud/atut-group-1 -u ${{secrets.SCW_SECRET_KEY}} --password-stdin
     - name: Build the Docker image
       run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/atut-bootcamp:v1
     - name: Push the Docker Image
