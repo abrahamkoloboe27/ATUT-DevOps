@@ -1,37 +1,18 @@
-name: Docker Image CI
+name: Build & Deploy to Scaleway
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
+  workflow_dispatch:
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag zach27/atut-bootcamp:v1
-    - name: Login to Docker Hub
+    - name: Login to Scaleway Container Registry
       uses: docker/login-action@v3
       with:
-        ecr: auto
-        logout: true
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
-    - name: Extract metadata (labels, tags, etc.) for Docker
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: zach27/atut-bootcamp:v0
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: zach27/atut-bootcamp:v1
-          labels: ${{ steps.meta.outputs.labels }}
+        username: nologin
+        password: ${{ secrets.SCALEWAY_API_KEY }}
+        registry: ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}
+    - name: Build the Docker image
+      run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/atut-bootcamp
+    - name: Push the Docker Image
+      run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/atut-bootcamp
