@@ -1,14 +1,17 @@
 name: Build & Deploy to Scaleway
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Login to Scaleway Container Registry
-      run: echo "$SCW_SECRET_KEY" | docker login rg.fr-par.scw.cloud/atut-group-1 -u nologin --password-stdin
+      run:  docker login rg.fr-par.scw.cloud/atut-group-1 -u nologin --password-stdin <<< "$SCW_SECRET_KEY"
     - name: Build the Docker image
-      run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/atut-bootcamp
+      run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/atut-bootcamp:v1
     - name: Push the Docker Image
-      run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/atut-bootcamp
+      run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/atut-bootcamp:v1
