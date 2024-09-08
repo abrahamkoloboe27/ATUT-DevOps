@@ -36,6 +36,7 @@ jobs:
         key: ${{ secrets.KEY }}
         script: |
           pwd
+          mkdir -p /home/${{ secrets.USERNAME }}/app
           cd /home/${{ secrets.USERNAME }}/app
           pwd
           docker-compose pull
