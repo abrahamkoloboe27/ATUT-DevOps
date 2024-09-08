@@ -35,15 +35,11 @@ jobs:
           COMMIT_HASH: ${{ env.COMMIT_HASH }}
         run: ./scripts/docker-login.sh
 
-      - name: Build the Docker image - Backend
-        env:
-          COMMIT_HASH: ${{ env.COMMIT_HASH }}
-        run: ./scripts/build-backend.sh
 
-      - name: Build the Docker image - Frontend
+      - name: Build the Docker images
         env:
           COMMIT_HASH: ${{ env.COMMIT_HASH }}
-        run: ./scripts/build-frontend.sh
+        run: ./scripts/build.sh
 
 
       - name: Tag the Docker Images
@@ -70,9 +66,16 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-            docker pull rg.fr-par.scw.cloud/atut-group-1/backend:latest
-            docker pull rg.fr-par.scw.cloud/atut-group-1/frontend:latest
-            echo "Docker images pulled successfully."
+            for image in $IMAGES; do
+              # Récupérer le nom de l'image
+              image_name=$(basename "$image")
+              echo "Pulling image: $image_name ....."
+              docker pull ${CONTAINER_REGISTRY_ENDPOINT}/${image_name}:latest
+          
+              # Pusher l'image vers le registre
+              echo " $image_name pulled from registry succesfully"
+            done
+
 
             APP_DIR="/home/${{ secrets.USERNAME }}/app"
             if [ -d "$APP_DIR" ]; then

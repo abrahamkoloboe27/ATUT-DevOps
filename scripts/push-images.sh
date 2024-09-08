@@ -1,10 +1,11 @@
 #!/bin/bash
-# Push backend image to the registry
 
-docker push ${CONTAINER_REGISTRY_ENDPOINT}/backend:${COMMIT_HASH}
-docker push ${CONTAINER_REGISTRY_ENDPOINT}/backend:latest
+for image in $IMAGES; do
+    # Récupérer le nom de l'image
+    image_name=$(basename "$image")
+    echo "Pushing image: $image_name ....."
+    docker push ${CONTAINER_REGISTRY_ENDPOINT}/${image_name}:latest
 
-# Push backend image to the registry
-
-docker push ${CONTAINER_REGISTRY_ENDPOINT}/frontend:${COMMIT_HASH}
-docker push ${CONTAINER_REGISTRY_ENDPOINT}/frontend:latest
+    # Pusher l'image vers le registre
+    echo " $image_name pushed to registry succesfully"
+  done
