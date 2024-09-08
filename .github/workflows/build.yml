@@ -39,7 +39,7 @@ jobs:
           mkdir -p /home/${{ secrets.USERNAME }}/app
           cd /home/${{ secrets.USERNAME }}/app
           pwd
-          docker-compose pull
-          docker-compose up -d --remove-orphans
+          docker compose pull
+          docker compose up -d --remove-orphans
           docker system prune -f
           docker ps -a
