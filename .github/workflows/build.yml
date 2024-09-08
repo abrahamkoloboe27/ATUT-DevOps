@@ -11,7 +11,8 @@ jobs:
     env:
       SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
       COMMIT_HASH: ${{ env.COMMIT_HASH }}
-      CONTAINER_REGISTRY_ENDPOINT:  ${{CONTAINER_REGISTRY_ENDPOINT}}
+      CONTAINER_REGISTRY_ENDPOINT:  ${{secrets.CONTAINER_REGISTRY_ENDPOINT}}
+      USERNAME: ${{secrets.USERNAME}}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,19 +33,28 @@ jobs:
       - name: Login to Scaleway Container Registry
         env:
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
         run: ./scripts/docker-login.sh
 
       - name: Build the Docker image - Backend
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
         run: ./scripts/build-backend.sh
 
       - name: Build the Docker image - Frontend
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
         run: ./scripts/build-frontend.sh
 
 
       - name: Tag the Docker Images
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
         run: ./scripts/tag.sh
 
       - name: Push the Docker Images
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
         run: ./scripts/push-images.sh
 
 
@@ -54,6 +64,8 @@ jobs:
     steps:
       - name: executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
