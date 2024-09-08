@@ -13,4 +13,4 @@ def read_root():
 
 @app.get("/welcome/{name}")
 def welcome_name(name: str):
-    return {"message": f"You're Welcome {name}"}
+    return {"message": f"You're Welcome {name}\n Happy to meet you!"}
