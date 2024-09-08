@@ -38,12 +38,22 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
+            docker pull rg.fr-par.scw.cloud/atut-group-1/backend
+            docker pull rg.fr-par.scw.cloud/atut-group-1/frontend
+            echo "Docker images pulled successfully."
+
             pwd
             mkdir -p /home/${{ secrets.USERNAME }}/app
+            echo "Directory created."
+
             cd /home/${{ secrets.USERNAME }}/app
             git clone https://github.com/abrahamkoloboe27/ATUT-DevOps.git .
+            echo "Repository cloned."
+            ls
+
             echo "Docker Compose directory created and accessed."
             docker compose pull
             docker compose up -d --remove-orphans
             docker system prune -f
             docker ps -a
+            echo "Docker Compose up successfully."
