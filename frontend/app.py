@@ -11,5 +11,6 @@ if st.button('Submit'):
     if response.status_code == 200:
         message = response.json().get('message', 'No message received')
         st.success(message)
+        st.image("img/bart.jpg")
     else:
         st.error('Failed to retrieve the welcome message')
