@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api: 
     image: rg.fr-par.scw.cloud/atut-group-1/backend
