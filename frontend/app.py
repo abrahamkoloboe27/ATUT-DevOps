@@ -4,10 +4,7 @@ import json
 st.set_page_config(page_title='ATUT-DevOps', 
                    page_icon=':rocket:')
 
-st.title('Test ATUT-DevOps')
-
-
-name_input = st.text_input('Name', 'Type your name here')
+st.title('Test ATUT-DevOps First Deployment')
 
 if st.button('Submit'):
     response = requests.get(f'http://api:8000/welcome/{name_input}')

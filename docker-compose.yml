@@ -1,8 +1,8 @@
+version: '3.8'
+
 services:
-  api : 
-    build : 
-      context: ./backend
-      dockerfile: Dockerfile
+  api: 
+    image: rg.fr-par.scw.cloud/atut-group-1/backend
     ports: 
       - "8000:8000"
     volumes: 
@@ -11,10 +11,9 @@ services:
     networks:
       - app_network
     restart: always
+
   app:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: rg.fr-par.scw.cloud/atut-group-1/frontend
     ports:
       - "8501:8501"
     volumes:
@@ -23,6 +22,38 @@ services:
     networks:
       - app_network
     restart: always
+
 networks:
   app_network:
     driver: bridge
+
+
+
+# services:
+#   api : 
+#     build : 
+#       context: ./backend
+#       dockerfile: Dockerfile
+#     ports: 
+#       - "8000:8000"
+#     volumes: 
+#       - ./backend:/backend
+#     container_name: api
+#     networks:
+#       - app_network
+#     restart: always
+#   app:
+#     build:
+#       context: ./frontend
+#       dockerfile: Dockerfile
+#     ports:
+#       - "8501:8501"
+#     volumes:
+#       - ./frontend:/frontend
+#     container_name: frontend
+#     networks:
+#       - app_network
+#     restart: always
+# networks:
+#   app_network:
+#     driver: bridge
