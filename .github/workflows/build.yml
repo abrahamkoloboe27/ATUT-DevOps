@@ -8,6 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+      COMMIT_HASH: ${{ env.COMMIT_HASH }}
+      CONTAINER_REGISTRY_ENDPOINT:  ${{CONTAINER_REGISTRY_ENDPOINT}}
     steps:
       - uses: actions/checkout@v4
 
