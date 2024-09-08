@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
-      COMMIT_HASH: ${{ env.COMMIT_HASH }}
       CONTAINER_REGISTRY_ENDPOINT:  ${{secrets.CONTAINER_REGISTRY_ENDPOINT}}
       USERNAME: ${{secrets.USERNAME}}
     steps:
