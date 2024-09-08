@@ -3,107 +3,70 @@ name: Build & Deploy to Scaleway
 on:
   push:
     branches:
-      - main
-      - test
-  pull_request:
-    branches:
-      - test 
-      - main
+      - tag-test
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+      CONTAINER_REGISTRY_ENDPOINT:  ${{secrets.CONTAINER_REGISTRY_ENDPOINT}}
+      USERNAME: ${{secrets.USERNAME}}
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Get Commit Hash
+        id: vars
+        run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Echo Secret
+        run: echo "${{secrets.SCW_SECRET_KEY}}"
+
+      - name: Make scripts executable
+        run: chmod +x ./scripts/*.sh
+
+
       - name: Login to Scaleway Container Registry
-        run: echo ${{ secrets.SCW_SECRET_KEY}} | docker login rg.fr-par.scw.cloud/atut-group-1 -u ${{secrets.SCW_SECRET_KEY}} --password-stdin
+        env:
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
+        run: ./scripts/docker-login.sh
 
       - name: Build the Docker image - Backend
-        working-directory: ./backend
-        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
+        run: ./scripts/build-backend.sh
 
-      - name: Push the Docker Image - Backend
-        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend
-  
       - name: Build the Docker image - Frontend
-        working-directory: ./frontend
-        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
+        run: ./scripts/build-frontend.sh
 
-      - name: Push the Docker Image - Frontend
-        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend
+
+      - name: Tag the Docker Images
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
+        run: ./scripts/tag.sh
+
+      - name: Push the Docker Images
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
+        run: ./scripts/push-images.sh
+
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Connect to Remote Server via SSH
+      - name: executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          COMMIT_HASH: ${{ env.COMMIT_HASH }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          script: |
-            # Create directory for Kubernetes manifests if it doesn't exist
-            MANIFEST_DIR="/test/kubernetes"
-            if [ ! -d "$MANIFEST_DIR" ]; then
-              mkdir -p "$MANIFEST_DIR"
-            fi
-            ls
-            # Check if the directory exists and remove it if it does
-            if [ -d "ATUT-DevOps-test" ]; then
-              rm -rf ATUT-DevOps-test
-            fi
-            if [ -d "ATUT-DevOps-main" ]; then
-              rm -rf ATUT-DevOps-main
-            fi
-            if [ -f "test.zip" ]; then
-              rm -f test.zip
-            fi
-            if [ -f "main.zip" ]; then
-              rm -f main.zip
-            fi
-
-            # Download and unzip the repository
-            wget https://github.com/abrahamkoloboe27/ATUT-DevOps/archive/refs/heads/test.zip -O test.zip
-            unzip test.zip
-            cp -r ATUT-DevOps-test/kube/* $MANIFEST_DIR
-            cd $MANIFEST_DIR
-            ls
-            
-
-            # Install kubectl if not already installed
-            if ! command -v kubectl &> /dev/null
-            then
-              curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-              chmod +x ./kubectl
-              sudo mv ./kubectl /usr/local/bin/kubectl
-            fi
-            echo "Kubectl installed"
-
-            # Update Kubernetes Deployments
-            kubectl set image deployment/api-deployment api-container=${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend --record
-            kubectl set image deployment/app-deployment app-container=${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend --record
-            echo "Images updated"
-
-            # Apply Kubernetes Configuration
-            kubectl apply -f $MANIFEST_DIR/api-deployment.yaml
-            kubectl apply -f $MANIFEST_DIR/app-deployment.yaml
-            kubectl apply -f $MANIFEST_DIR/api-service.yaml
-            kubectl apply -f $MANIFEST_DIR/app-service.yaml
-            echo "Kubernetes configuration applied"
-
-
-            # Verify the rollout
-            kubectl rollout status deployment/api-deployment
-            kubectl rollout status deployment/app-deployment
-            echo "Rollout verified"
-
-            # Clean up old resources and check the status
-            kubectl get pods
-            echo "Pods cleaned up"
-            kubectl get services
-            echo "Services cleaned up"
+          script: ./scripts/deploy.sh
