@@ -19,17 +19,17 @@ jobs:
 
       - name: Build the Docker image - Backend
         working-directory: ./backend
-        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend:v1
+        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend
 
       - name: Push the Docker Image - Backend
-        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend:v1
+        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend
 
       - name: Build the Docker image - Frontend
         working-directory: ./frontend
-        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend:v1
+        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend
 
       - name: Push the Docker Image - Frontend
-        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend:v1
+        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend
 
       - name: executing remote ssh commands using ssh key
         uses: appleboy/ssh-action@v1.0.3
@@ -42,9 +42,11 @@ jobs:
             docker pull rg.fr-par.scw.cloud/atut-group-1/frontend
             echo "Docker images pulled successfully."
 
-            pwd
+            if [ -d "/home/${{ secrets.USERNAME }}/app" ]; then
+              rm -rf /home/${{ secrets.USERNAME }}/app
+            fi
             mkdir -p /home/${{ secrets.USERNAME }}/app
-            echo "Directory created."
+            echo "Directory created or recreated."
 
             cd /home/${{ secrets.USERNAME }}/app
             git clone https://github.com/abrahamkoloboe27/ATUT-DevOps.git .
