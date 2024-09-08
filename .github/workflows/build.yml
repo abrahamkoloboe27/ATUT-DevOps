@@ -70,26 +70,22 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-                        docker pull rg.fr-par.scw.cloud/atut-group-1/backend:latest
+            docker pull rg.fr-par.scw.cloud/atut-group-1/backend:latest
             docker pull rg.fr-par.scw.cloud/atut-group-1/frontend:latest
             echo "Docker images pulled successfully."
-            
-            if [ -d "/home/${USERNAME}/app" ]; then
-              rm -rf /home/${USERNAME}/app
+
+            APP_DIR="/home/${{ secrets.USERNAME }}/app"
+            if [ -d "$APP_DIR" ]; then
+              rm -rf "$APP_DIR"
+              echo "Existing directory removed."
             fi
-            mkdir -p /home/${USERNAME}/app
-            echo "Directory created or recreated."
-            
-            cd /home/${USERNAME}/app
-            git clone --branch test --single-branch https://github.com/abrahamkoloboe27/ATUT-DevOps.git
+            mkdir -p "$APP_DIR"
+            echo "Directory created at $APP_DIR."
+            cd "$APP_DIR"
+            git clone --branch test --single-branch https://github.com/abrahamkoloboe27/ATUT-DevOps.git .
             echo "Repository cloned."
-            ls
-            cd ATUT_DevOps
-            echo "Docker Compose directory created and accessed."
             docker compose pull
             docker compose up -d --remove-orphans
             docker system prune -f
             docker ps -a
             echo "Docker Compose up successfully."
-
-
