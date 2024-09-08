@@ -12,10 +12,10 @@ mkdir -p /home/${USERNAME}/app
 echo "Directory created or recreated."
 
 cd /home/${USERNAME}/app
-git clone --branch test --single-branch https://github.com/abrahamkoloboe27/ATUT-DevOps.git .
+git clone --branch test --single-branch https://github.com/abrahamkoloboe27/ATUT-DevOps.git
 echo "Repository cloned."
 ls
-
+cd ATUT_DevOps
 echo "Docker Compose directory created and accessed."
 docker compose pull
 docker compose up -d --remove-orphans
