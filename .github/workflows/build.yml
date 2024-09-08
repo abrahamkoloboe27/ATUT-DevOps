@@ -41,7 +41,7 @@ jobs:
             pwd
             mkdir -p /home/${{ secrets.USERNAME }}/app
             cd /home/${{ secrets.USERNAME }}/app
-            git clone https://github.com/abrahamkoloboe27/your-repo.git .
+            git clone https://github.com/abrahamkoloboe27/ATUT-DevOps.git .
             echo "Docker Compose directory created and accessed."
             docker compose pull
             docker compose up -d --remove-orphans
