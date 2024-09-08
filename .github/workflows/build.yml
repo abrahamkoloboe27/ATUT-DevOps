@@ -26,6 +26,8 @@ jobs:
 
 
       - name: Login to Scaleway Container Registry
+        env:
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
         run: ./scripts/docker-login.sh
 
       - name: Build the Docker image - Backend
