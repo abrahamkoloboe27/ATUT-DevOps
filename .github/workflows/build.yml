@@ -14,22 +14,27 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Get Commit Hash
+        id: vars
+        run: echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
       - name: Login to Scaleway Container Registry
-        run: echo ${{ secrets.SCW_SECRET_KEY}} | docker login rg.fr-par.scw.cloud/atut-group-1 -u ${{secrets.SCW_SECRET_KEY}} --password-stdin
+        run: ./scripts/docker-login.sh
 
       - name: Build the Docker image - Backend
-        working-directory: ./backend
-        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend
+        run: ./scripts/build-backend.sh
 
-      - name: Push the Docker Image - Backend
-        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend
-  
       - name: Build the Docker image - Frontend
-        working-directory: ./frontend
-        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend
+        run: ./scripts/build-frontend.sh
 
-      - name: Push the Docker Image - Frontend
-        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend
+
+      - name: Tag the Docker Images
+        run: ./scripts/tag.sh
+
+      - name: Push the Docker Images
+        run: ./scripts/push-images.sh
+
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -40,25 +45,4 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          script: |
-            docker pull rg.fr-par.scw.cloud/atut-group-1/backend
-            docker pull rg.fr-par.scw.cloud/atut-group-1/frontend
-            echo "Docker images pulled successfully."
-
-            if [ -d "/home/${{ secrets.USERNAME }}/app" ]; then
-              rm -rf /home/${{ secrets.USERNAME }}/app
-            fi
-            mkdir -p /home/${{ secrets.USERNAME }}/app
-            echo "Directory created or recreated."
-
-            cd /home/${{ secrets.USERNAME }}/app
-            git clone https://github.com/abrahamkoloboe27/ATUT-DevOps.git .
-            echo "Repository cloned."
-            ls
-
-            echo "Docker Compose directory created and accessed."
-            docker compose pull
-            docker compose up -d --remove-orphans
-            docker system prune -f
-            docker ps -a
-            echo "Docker Compose up successfully."
+          script: ./scripts/deploy.sh
