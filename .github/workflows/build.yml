@@ -28,17 +28,14 @@ jobs:
     - name: Push the Docker Image - Frontend
       run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend:v1
 
-    - name: SSH into server and deploy
-      run: |
-        ssh -o StrictHostKeyChecking=no -i ${{ secrets.SERVER_SSH_KEY }} ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-        cd /home/${{ secrets.SERVER_USER }}/app
-        
-        # Pull the latest image
-        docker-compose pull
-
-        # Recreate and start containers with the new image
-        docker-compose up -d --remove-orphans
-
-        # Clean up unused images
-        docker system prune -f
-        EOF
+    - name: executing remote ssh commands using ssh key
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        script: |
+          cd /home/${{ secrets.USERNAME }}/app
+          docker-compose pull
+          docker-compose up -d --remove-orphans
+          docker system prune -f
