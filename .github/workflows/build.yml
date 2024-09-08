@@ -60,11 +60,17 @@ jobs:
             if [ -d "ATUT-DevOps-main" ]; then
               rm -rf ATUT-DevOps-main
             fi
+            if [ -f "test.zip" ]; then
+              rm -f test.zip
+            fi
+            if [ -f "main.zip" ]; then
+              rm -f main.zip
+            fi
 
             # Download and unzip the repository
             wget https://github.com/abrahamkoloboe27/ATUT-DevOps/archive/refs/heads/test.zip -O test.zip
             unzip test.zip
-            cp -r ATUT-DevOps-main/kube/* $MANIFEST_DIR
+            cp -r ATUT-DevOps-test/kube/* $MANIFEST_DIR
             cd $MANIFEST_DIR
             ls
             
