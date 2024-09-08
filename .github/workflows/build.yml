@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - test
   pull_request:
-      branches:
-        - main
+    branches:
+      - test 
+      - main
 
 jobs:
   build:
@@ -33,35 +35,60 @@ jobs:
 
       - name: Push the Docker Image - Frontend
         run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: executing remote ssh commands using ssh key
+      - name: Connect to Remote Server via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-            docker pull rg.fr-par.scw.cloud/atut-group-1/backend
-            docker pull rg.fr-par.scw.cloud/atut-group-1/frontend
-            echo "Docker images pulled successfully."
-
-            if [ -d "/home/${{ secrets.USERNAME }}/app" ]; then
-              rm -rf /home/${{ secrets.USERNAME }}/app
+            # Create directory for Kubernetes manifests if it doesn't exist
+            MANIFEST_DIR="/test/kubernetes"
+            if [ ! -d "$MANIFEST_DIR" ]; then
+              mkdir -p "$MANIFEST_DIR"
             fi
-            mkdir -p /home/${{ secrets.USERNAME }}/app
-            echo "Directory created or recreated."
-
-            cd /home/${{ secrets.USERNAME }}/app
-            curl -O ${{ secrets.DOCKER_COMPOSE_FILE }}
-            echo "Repository cloned."
             ls
+            wget https://github.com/abrahamkoloboe27/ATUT-DevOps/archive/refs/heads/main.zip
+            unzip main.zip
+            cp -r ATUT-DevOps-main/kube/* $MANIFEST_DIR
+            cd $MANIFEST_DIR
+            ls
+            
 
-            echo "Docker Compose directory created and accessed."
-            docker compose pull
-            docker compose up -d --remove-orphans
-            docker system prune -f
-            docker ps -a
-            echo "Docker Compose up successfully."
+            # Install kubectl if not already installed
+            if ! command -v kubectl &> /dev/null
+            then
+              curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+              chmod +x ./kubectl
+              sudo mv ./kubectl /usr/local/bin/kubectl
+            fi
+            echo "Kubectl installed"
+
+            # Update Kubernetes Deployments
+            kubectl set image deployment/api-deployment api-container=${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend --record
+            kubectl set image deployment/app-deployment app-container=${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend --record
+            echo "Images updated"
+
+            # Apply Kubernetes Configuration
+            kubectl apply -f $MANIFEST_DIR/api-deployment.yaml
+            kubectl apply -f $MANIFEST_DIR/app-deployment.yaml
+            kubectl apply -f $MANIFEST_DIR/api-service.yaml
+            kubectl apply -f $MANIFEST_DIR/app-service.yaml
+            echo "Kubernetes configuration applied"
+
+
+            # Verify the rollout
+            kubectl rollout status deployment/api-deployment
+            kubectl rollout status deployment/app-deployment
+            echo "Rollout verified"
+
+            # Clean up old resources and check the status
+            kubectl get pods
+            echo "Pods cleaned up"
+            kubectl get services
+            echo "Services cleaned up"

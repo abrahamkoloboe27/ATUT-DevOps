@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: app-container
+        image: rg.fr-par.scw.cloud/atut-group-1/frontend
+        ports:
+        - containerPort: 8501
+        volumeMounts:
+        - name: frontend-volume
+          mountPath: /frontend
+      volumes:
+      - name: frontend-volume
+        hostPath:
+          path: ./frontend
+          type: Directory
