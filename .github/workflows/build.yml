@@ -14,6 +14,14 @@ jobs:
     - name: Login to Scaleway Container Registry
       run:  echo ${{ secrets.SCW_SECRET_KEY}} | docker login rg.fr-par.scw.cloud/atut-group-1 -u ${{secrets.SCW_SECRET_KEY}} --password-stdin
     - name: Build the Docker image
-      run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/atut-bootcamp:abraham-koloboe
+      working-directory: ./backend
+      run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend:v0
     - name: Push the Docker Image
-      run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/atut-bootcamp:abraham-koloboe
+      run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend:v0
+    - name: Build the Docker image
+      working-directory: ./frontend
+      run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend:v0
+    - name: Push the Docker Image
+      run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend:v0
+
+    
