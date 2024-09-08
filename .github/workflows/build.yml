@@ -3,7 +3,7 @@ name: Build & Deploy to Scaleway
 on:
   push:
     branches:
-      - tag-test
+      - test
 
 jobs:
   build:
