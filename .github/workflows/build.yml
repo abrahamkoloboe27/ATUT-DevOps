@@ -21,6 +21,10 @@ jobs:
       - name: Echo Secret
         run: echo "${{secrets.SCW_SECRET_KEY}}"
 
+      - name: Make scripts executable
+        run: chmod +x ./scripts/*.sh
+
+
       - name: Login to Scaleway Container Registry
         run: ./scripts/docker-login.sh
 
