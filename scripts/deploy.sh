@@ -5,13 +5,13 @@ docker pull rg.fr-par.scw.cloud/atut-group-1/backend:latest
 docker pull rg.fr-par.scw.cloud/atut-group-1/frontend:latest
 echo "Docker images pulled successfully."
 
-if [ -d "/home/${{ secrets.USERNAME }}/app" ]; then
-  rm -rf /home/${{ secrets.USERNAME }}/app
+if [ -d "/home/${USERNAME}/app" ]; then
+  rm -rf /home/${USERNAME}/app
 fi
-mkdir -p /home/${{ secrets.USERNAME }}/app
+mkdir -p /home/${USERNAME}/app
 echo "Directory created or recreated."
 
-cd /home/${{ secrets.USERNAME }}/app
+cd /home/${USERNAME}/app
 git clone https://github.com/abrahamkoloboe27/ATUT-DevOps.git .
 echo "Repository cloned."
 ls
