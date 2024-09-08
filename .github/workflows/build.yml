@@ -52,7 +52,7 @@ jobs:
             echo "Directory created or recreated."
 
             cd /home/${{ secrets.USERNAME }}/app
-            git clone https://github.com/abrahamkoloboe27/ATUT-DevOps.git .
+            curl -O https://raw.githubusercontent.com/abrahamkoloboe27/ATUT-DevOps/main/docker-compose.yml
             echo "Repository cloned."
             ls
 
