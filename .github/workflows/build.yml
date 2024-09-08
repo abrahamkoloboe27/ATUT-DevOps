@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+      branches:
+        - main
 
 jobs:
   build:
@@ -52,7 +55,7 @@ jobs:
             echo "Directory created or recreated."
 
             cd /home/${{ secrets.USERNAME }}/app
-            curl -O https://raw.githubusercontent.com/abrahamkoloboe27/ATUT-DevOps/main/docker-compose.yml
+            curl -O ${{ secrets.DOCKER_COMPOSE_FILE }}
             echo "Repository cloned."
             ls
 
