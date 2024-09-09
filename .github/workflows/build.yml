@@ -16,12 +16,9 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Log in to Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: rg.fr-par.scw.cloud
-        username: ${{ secrets.SCALWAY_ACCESS_KEY }}
-        password: ${{ secrets.SCALWAY_SECRET_KEY }}
+    - name: Login to Scaleway Container Registry
+      run: echo ${{ secrets.SCW_SECRET_KEY}} | docker login rg.fr-par.scw.cloud/atut-group-1 -u ${{secrets.SCW_SECRET_KEY}} --password-stdin
+
 
     - name: Extract Commit Hash
       id: get_commit
