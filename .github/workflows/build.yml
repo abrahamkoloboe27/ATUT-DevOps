@@ -44,67 +44,50 @@ jobs:
           --push \
           ./frontend
 
-    - name: Create deploy.sh Script
-      run: |
-        echo '#!/bin/bash' > deploy.sh
-        echo 'mkdir -p ~/app' >> deploy.sh
-        echo 'cd ~/app' >> deploy.sh
-        echo 'cat << EOF > docker-compose.yml' >> deploy.sh
-        echo 'version: "3.8"' >> deploy.sh
-        echo 'services:' >> deploy.sh
-        echo '  api:' >> deploy.sh
-        echo '    image: rg.fr-par.scw.cloud/atut-group-1/backend:${{ env.COMMIT_HASH }}' >> deploy.sh
-        echo '    ports:' >> deploy.sh
-        echo '      - "8000:8000"' >> deploy.sh
-        echo '    volumes:' >> deploy.sh
-        echo '      - ./backend:/backend' >> deploy.sh
-        echo '    container_name: api' >> deploy.sh
-        echo '    networks:' >> deploy.sh
-        echo '      - app_network' >> deploy.sh
-        echo '    restart: always' >> deploy.sh
-        echo '' >> deploy.sh
-        echo '  app:' >> deploy.sh
-        echo '    image: rg.fr-par.scw.cloud/atut-group-1/frontend:${{ env.COMMIT_HASH }}' >> deploy.sh
-        echo '    ports:' >> deploy.sh
-        echo '      - "8501:8501"' >> deploy.sh
-        echo '    volumes:' >> deploy.sh
-        echo '      - ./frontend:/frontend' >> deploy.sh
-        echo '    container_name: frontend' >> deploy.sh
-        echo '    networks:' >> deploy.sh
-        echo '      - app_network' >> deploy.sh
-        echo '    restart: always' >> deploy.sh
-        echo '' >> deploy.sh
-        echo 'networks:' >> deploy.sh
-        echo '  app_network:' >> deploy.sh
-        echo '    driver: bridge' >> deploy.sh
-        echo 'EOF' >> deploy.sh
-        echo 'docker compose pull' >> deploy.sh
-        echo 'docker compose up -d --remove-orphans' >> deploy.sh
-        echo 'docker system prune -f' >> deploy.sh
-        echo 'docker ps -a' >> deploy.sh
-        chmod +x deploy.sh
-
-    - name: Upload deploy.sh Script as Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: deploy-script
-        path: deploy.sh
-
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - name: Download deploy.sh Script
-      uses: actions/download-artifact@v3
-      with:
-        name: deploy-script
-
-    - name: Execute Deployment Script
+    - name: Execute Deployment Script on Server
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         script: |
-          chmod +x deploy.sh
-          ./deploy.sh
+          echo '#!/bin/bash' > ~/deploy.sh
+          echo 'mkdir -p ~/app' >> ~/deploy.sh
+          echo 'cd ~/app' >> ~/deploy.sh
+          echo 'cat << EOF > docker-compose.yml' >> ~/deploy.sh
+          echo 'version: "3.8"' >> ~/deploy.sh
+          echo 'services:' >> ~/deploy.sh
+          echo '  api:' >> ~/deploy.sh
+          echo '    image: rg.fr-par.scw.cloud/atut-group-1/backend:${{ env.COMMIT_HASH }}' >> ~/deploy.sh
+          echo '    ports:' >> ~/deploy.sh
+          echo '      - "8000:8000"' >> ~/deploy.sh
+          echo '    volumes:' >> ~/deploy.sh
+          echo '      - ./backend:/backend' >> ~/deploy.sh
+          echo '    container_name: api' >> ~/deploy.sh
+          echo '    networks:' >> ~/deploy.sh
+          echo '      - app_network' >> ~/deploy.sh
+          echo '    restart: always' >> ~/deploy.sh
+          echo '' >> ~/deploy.sh
+          echo '  app:' >> ~/deploy.sh
+          echo '    image: rg.fr-par.scw.cloud/atut-group-1/frontend:${{ env.COMMIT_HASH }}' >> ~/deploy.sh
+          echo '    ports:' >> ~/deploy.sh
+          echo '      - "8501:8501"' >> ~/deploy.sh
+          echo '    volumes:' >> ~/deploy.sh
+          echo '      - ./frontend:/frontend' >> ~/deploy.sh
+          echo '    container_name: frontend' >> ~/deploy.sh
+          echo '    networks:' >> ~/deploy.sh
+          echo '      - app_network' >> ~/deploy.sh
+          echo '    restart: always' >> ~/deploy.sh
+          echo '' >> ~/deploy.sh
+          echo 'networks:' >> ~/deploy.sh
+          echo '  app_network:' >> ~/deploy.sh
+          echo '    driver: bridge' >> ~/deploy.sh
+          echo 'EOF' >> ~/deploy.sh
+          echo 'chmod +x ~/deploy.sh' >> ~/deploy.sh
+          echo '~/deploy.sh' >> ~/deploy.sh
+          chmod +x ~/deploy.sh
+          ~/deploy.sh
