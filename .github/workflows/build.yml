@@ -57,37 +57,41 @@ jobs:
         script: |
           COMMIT_HASH=${{ env.COMMIT_HASH }}
           mkdir -p ~/app/$COMMIT_HASH
-          cd ~/app/$COMMIT_HASH 
-          echo #!/bin/bash > ./deploy.sh
-          echo 'cat << EOF > docker-compose.yml' >> ./deploy.sh
-          echo 'services:' >> ./deploy.sh
-          echo '  api:' >> ./deploy.sh
-          echo '    image: rg.fr-par.scw.cloud/atut-group-1/hash-test-backend:${{ env.COMMIT_HASH }}' >> ./deploy.sh
-          echo '    ports:' >> ./deploy.sh
-          echo '      - "8000:8000"' >> ./deploy.sh
-          echo '    volumes:' >> ./deploy.sh
-          echo '      - ./backend:/backend' >> ./deploy.sh
-          echo '    container_name: api' >> ./deploy.sh
-          echo '    networks:' >> ./deploy.sh
-          echo '      - app_network' >> ./deploy.sh
-          echo '    restart: always' >> ./deploy.sh
-          echo '' >> ./deploy.sh
-          echo '  app:' >> ./deploy.sh
-          echo '    image: rg.fr-par.scw.cloud/atut-group-1/hash-test-frontend:${{ env.COMMIT_HASH }}' >> ./deploy.sh
-          echo '    ports:' >> ./deploy.sh
-          echo '      - "8501:8501"' >> ./deploy.sh
-          echo '    volumes:' >> ./deploy.sh
-          echo '      - ./frontend:/frontend' >> ./deploy.sh
-          echo '    container_name: frontend' >> ./deploy.sh
-          echo '    networks:' >> ./deploy.sh
-          echo '      - app_network' >> ./deploy.sh
-          echo '    restart: always' >> ./deploy.sh
-          echo '' >> ./deploy.sh
-          echo 'networks:' >> ./deploy.sh
-          echo '  app_network:' >> ./deploy.sh
-          echo '    driver: bridge' >> ./deploy.sh
-          echo 'EOF' >> ./deploy.sh
-          echo 'chmod +x ./deploy.sh' >> ./deploy.sh
-          echo './deploy.sh' >> ./deploy.sh
-          chmod +x ./deploy.sh
-          ./deploy.sh
+          cd ~/app/$COMMIT_HASH
+          
+          cat <<EOF > deploy.sh
+            #!/bin/bash
+            mkdir -p ~/app/$COMMIT_HASH
+            cd ~/app/$COMMIT_HASH
+            cat << EOL > docker-compose.yml
+            services:
+              api:
+                image: rg.fr-par.scw.cloud/atut-group-1/hash-test-backend:${{ env.COMMIT_HASH }}
+                ports:
+                  - "8000:8000"
+                volumes:
+                  - ./backend:/backend
+                container_name: api
+                networks:
+                  - app_network
+                restart: always
+
+              app:
+                image: rg.fr-par.scw.cloud/atut-group-1/hash-test-frontend:${{ env.COMMIT_HASH }}
+                ports:
+                  - "8501:8501"
+                volumes:
+                  - ./frontend:/frontend
+                container_name: frontend
+                networks:
+                  - app_network
+                restart: always
+
+            networks:
+              app_network:
+                driver: bridge
+            EOL
+
+            chmod +x deploy.sh
+            ./deploy.sh
+          EOF
