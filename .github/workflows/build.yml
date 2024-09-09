@@ -29,7 +29,7 @@ jobs:
         docker buildx build \
           --platform linux/amd64 \
           --build-arg COMMIT_HASH=${{ env.COMMIT_HASH }} \
-          -t rg.fr-par.scw.cloud/atut-group-1/hash-test:${{ env.COMMIT_HASH }} \
+          -t rg.fr-par.scw.cloud/atut-group-1/hash-test-backend:${{ env.COMMIT_HASH }} \
           -t rg.fr-par.scw.cloud/atut-group-1/backend:latest \
           --push \
           ./backend
@@ -39,7 +39,7 @@ jobs:
         docker buildx build \
           --platform linux/amd64 \
           --build-arg COMMIT_HASH=${{ env.COMMIT_HASH }} \
-          -t rg.fr-par.scw.cloud/atut-group-1/hash-test:${{ env.COMMIT_HASH }} \
+          -t rg.fr-par.scw.cloud/atut-group-1/hash-test-frontend:${{ env.COMMIT_HASH }} \
           -t rg.fr-par.scw.cloud/atut-group-1/frontend:latest \
           --push \
           ./frontend
@@ -62,7 +62,7 @@ jobs:
           echo 'cat << EOF > docker-compose.yml' >> ~/deploy.sh
           echo 'services:' >> ~/deploy.sh
           echo '  api:' >> ~/deploy.sh
-          echo '    image: rg.fr-par.scw.cloud/atut-group-1/hash-test:${{ env.COMMIT_HASH }}' >> ~/deploy.sh
+          echo '    image: rg.fr-par.scw.cloud/atut-group-1/hash-test-backend:${{ env.COMMIT_HASH }}' >> ~/deploy.sh
           echo '    ports:' >> ~/deploy.sh
           echo '      - "8000:8000"' >> ~/deploy.sh
           echo '    volumes:' >> ~/deploy.sh
@@ -73,7 +73,7 @@ jobs:
           echo '    restart: always' >> ~/deploy.sh
           echo '' >> ~/deploy.sh
           echo '  app:' >> ~/deploy.sh
-          echo '    image: rg.fr-par.scw.cloud/atut-group-1/hash-test:${{ env.COMMIT_HASH }}' >> ~/deploy.sh
+          echo '    image: rg.fr-par.scw.cloud/atut-group-1/hash-test-frontend:${{ env.COMMIT_HASH }}' >> ~/deploy.sh
           echo '    ports:' >> ~/deploy.sh
           echo '      - "8501:8501"' >> ~/deploy.sh
           echo '    volumes:' >> ~/deploy.sh
