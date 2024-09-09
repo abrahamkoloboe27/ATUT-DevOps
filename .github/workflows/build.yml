@@ -36,16 +36,13 @@ jobs:
         run: ./scripts/docker-login.sh
 
 
-      - name: Build the Docker images
+      - name: Build and Tag the Docker images
         env:
           COMMIT_HASH: ${{ env.COMMIT_HASH }}
-        run: ./scripts/build.sh
+        run: ./scripts/build-tag.sh
 
 
-      - name: Tag the Docker Images
-        env:
-          COMMIT_HASH: ${{ env.COMMIT_HASH }}
-        run: ./scripts/tag.sh
+
 
       - name: Push the Docker Images
         env:
@@ -66,15 +63,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-            for image in $IMAGES; do
-              # Récupérer le nom de l'image
-              image_name=$(basename "$image")
-              echo "Pulling image: $image_name ....."
-              docker pull ${CONTAINER_REGISTRY_ENDPOINT}/${image_name}:latest
-          
-              # Pusher l'image vers le registre
-              echo " $image_name pulled from registry succesfully"
-            done
+         
 
 
             APP_DIR="/home/${{ secrets.USERNAME }}/app"

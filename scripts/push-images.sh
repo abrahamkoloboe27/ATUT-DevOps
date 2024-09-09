@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for image in $IMAGES; do
+for image in $SERVICES; do
     # Récupérer le nom de l'image
     image_name=$(basename "$image")
     echo "Pushing image: $image_name ....."
