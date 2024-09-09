@@ -1,69 +1,91 @@
-name: Build & Deploy to Scaleway
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
-      - test
-  pull_request:
-      branches:
-        - test 
-        - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout Code
+      uses: actions/checkout@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-      - name: Login to Scaleway Container Registry
-        run: echo ${{ secrets.SCW_SECRET_KEY}} | docker login rg.fr-par.scw.cloud/atut-group-1 -u ${{secrets.SCW_SECRET_KEY}} --password-stdin
+    - name: Log in to Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: rg.fr-par.scw.cloud
+        username: ${{ secrets.SCALWAY_ACCESS_KEY }}
+        password: ${{ secrets.SCALWAY_SECRET_KEY }}
 
-      - name: Build the Docker image - Backend
-        working-directory: ./backend
-        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend
+    - name: Extract Commit Hash
+      id: get_commit
+      run: echo "COMMIT_HASH=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_ENV
 
-      - name: Push the Docker Image - Backend
-        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/backend
-  
-      - name: Build the Docker image - Frontend
-        working-directory: ./frontend
-        run: docker build . -t ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend
+    - name: Build and Push Backend Docker Image
+      run: |
+        docker buildx build \
+          --platform linux/amd64 \
+          --build-arg COMMIT_HASH=${{ env.COMMIT_HASH }} \
+          -t rg.fr-par.scw.cloud/atut-group-1/backend:${{ env.COMMIT_HASH }} \
+          -t rg.fr-par.scw.cloud/atut-group-1/backend:latest \
+          --push \
+          ./backend
 
-      - name: Push the Docker Image - Frontend
-        run: docker push ${{ secrets.CONTAINER_REGISTRY_ENDPOINT }}/frontend
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: executing remote ssh commands using ssh key
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
-          script: |
-            docker pull rg.fr-par.scw.cloud/atut-group-1/backend
-            docker pull rg.fr-par.scw.cloud/atut-group-1/frontend
-            echo "Docker images pulled successfully."
+    - name: Build and Push Frontend Docker Image
+      run: |
+        docker buildx build \
+          --platform linux/amd64 \
+          --build-arg COMMIT_HASH=${{ env.COMMIT_HASH }} \
+          -t rg.fr-par.scw.cloud/atut-group-1/frontend:${{ env.COMMIT_HASH }} \
+          -t rg.fr-par.scw.cloud/atut-group-1/frontend:latest \
+          --push \
+          ./frontend
 
-            if [ -d "/home/${{ secrets.USERNAME }}/app" ]; then
-              rm -rf /home/${{ secrets.USERNAME }}/app
-            fi
-            mkdir -p /home/${{ secrets.USERNAME }}/app
-            echo "Directory created or recreated."
+    - name: Create deploy.sh script
+      run: |
+        echo '#!/bin/bash' > deploy.sh
+        echo 'mkdir -p ~/app' >> deploy.sh
+        echo 'cd ~/app' >> deploy.sh
+        echo 'cat << EOF > docker-compose.yml' >> deploy.sh
+        echo 'version: "3.8"' >> deploy.sh
+        echo 'services:' >> deploy.sh
+        echo '  api:' >> deploy.sh
+        echo '    image: rg.fr-par.scw.cloud/atut-group-1/backend:${{ env.COMMIT_HASH }}' >> deploy.sh
+        echo '    ports:' >> deploy.sh
+        echo '      - "8000:8000"' >> deploy.sh
+        echo '    volumes:' >> deploy.sh
+        echo '      - ./backend:/backend' >> deploy.sh
+        echo '    container_name: api' >> deploy.sh
+        echo '    networks:' >> deploy.sh
+        echo '      - app_network' >> deploy.sh
+        echo '    restart: always' >> deploy.sh
+        echo '' >> deploy.sh
+        echo '  app:' >> deploy.sh
+        echo '    image: rg.fr-par.scw.cloud/atut-group-1/frontend:${{ env.COMMIT_HASH }}' >> deploy.sh
+        echo '    ports:' >> deploy.sh
+        echo '      - "8501:8501"' >> deploy.sh
+        echo '    volumes:' >> deploy.sh
+        echo '      - ./frontend:/frontend' >> deploy.sh
+        echo '    container_name: frontend' >> deploy.sh
+        echo '    networks:' >> deploy.sh
+        echo '      - app_network' >> deploy.sh
+        echo '    restart: always' >> deploy.sh
+        echo '' >> deploy.sh
+        echo 'networks:' >> deploy.sh
+        echo '  app_network:' >> deploy.sh
+        echo '    driver: bridge' >> deploy.sh
+        echo 'EOF' >> deploy.sh
+        echo 'docker compose pull' >> deploy.sh
+        echo 'docker compose up -d --remove-orphans' >> deploy.sh
+        echo 'docker system prune -f' >> deploy.sh
+        echo 'docker ps -a' >> deploy.sh
+        chmod +x deploy.sh
 
-            cd /home/${{ secrets.USERNAME }}/app
-            curl -O ${{ secrets.DOCKER_COMPOSE_FILE }}
-            echo "Repository cloned."
-            ls
-
-            echo "Docker Compose directory created and accessed."
-            docker compose pull
-            docker compose up -d --remove-orphans
-            docker system prune -f
-            docker ps -a
-            echo "Docker Compose up successfully."
+    - name: Deploy Application
+      run: ./deploy.sh
