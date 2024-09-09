@@ -90,6 +90,6 @@ jobs:
             networks:
               app_network:
                 driver: bridge
-          EOL
+          EOF
           chmod +x deploy.sh
           ./deploy.sh
