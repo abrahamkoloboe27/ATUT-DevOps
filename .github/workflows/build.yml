@@ -45,53 +45,54 @@ jobs:
           ./frontend
 
   deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-    - name: Execute Deployment Script on Server
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.KEY }}
-        script: |
-          COMMIT_HASH=${{ env.COMMIT_HASH }}
-          mkdir -p ~/app/$COMMIT_HASH
-          cd ~/app/$COMMIT_HASH
-          
-          cat <<EOF > deploy.sh
-            #!/bin/bash
-            mkdir -p ~/app/$COMMIT_HASH
-            cd ~/app/$COMMIT_HASH
-            cat << EOL > docker-compose.yml
-            services:
-              api:
-                image: rg.fr-par.scw.cloud/atut-group-1/hash-test-backend:${{ env.COMMIT_HASH }}
-                ports:
-                  - "8000:8000"
-                volumes:
-                  - ./backend:/backend
-                container_name: api
-                networks:
-                  - app_network
-                restart: always
+  runs-on: ubuntu-latest
+  needs: build
+  steps:
+  - name: Execute Deployment Script on Server
+    uses: appleboy/ssh-action@v1.0.3
+    with:
+      host: ${{ secrets.HOST }}
+      username: ${{ secrets.USERNAME }}
+      key: ${{ secrets.KEY }}
+      script: |
+        COMMIT_HASH=${{ env.COMMIT_HASH }}
+        mkdir -p ~/app/$COMMIT_HASH
+        cd ~/app/$COMMIT_HASH
 
-              app:
-                image: rg.fr-par.scw.cloud/atut-group-1/hash-test-frontend:${{ env.COMMIT_HASH }}
-                ports:
-                  - "8501:8501"
-                volumes:
-                  - ./frontend:/frontend
-                container_name: frontend
-                networks:
-                  - app_network
-                restart: always
+        cat << 'EOF' > deploy.sh
+#!/bin/bash
+mkdir -p ~/app/$COMMIT_HASH
+cd ~/app/$COMMIT_HASH
+cat << 'EOL' > docker-compose.yml
+version: "3.8"
+services:
+  api:
+    image: rg.fr-par.scw.cloud/atut-group-1/hash-test-backend:${{ env.COMMIT_HASH }}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/backend
+    container_name: api
+    networks:
+      - app_network
+    restart: always
 
-            networks:
-              app_network:
-                driver: bridge
-            EOL
+  app:
+    image: rg.fr-par.scw.cloud/atut-group-1/hash-test-frontend:${{ env.COMMIT_HASH }}
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./frontend:/frontend
+    container_name: frontend
+    networks:
+      - app_network
+    restart: always
 
-            chmod +x deploy.sh
-            ./deploy.sh
-          EOF
+networks:
+  app_network:
+    driver: bridge
+EOL
+
+chmod +x deploy.sh
+./deploy.sh
+        EOF
