@@ -55,10 +55,11 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         script: |
-          #!/bin/bash
+          
           COMMIT_HASH=${{ env.COMMIT_HASH }}
           mkdir -p ~/app/$COMMIT_HASH
           cd ~/app/$COMMIT_HASH 
+          echo #!/bin/bash > ~/deploy.sh
           echo 'cat << EOF > docker-compose.yml' >> ~/deploy.sh
           echo 'services:' >> ~/deploy.sh
           echo '  api:' >> ~/deploy.sh
