@@ -3,7 +3,7 @@ name: Build & Deploy to Scaleway
 on:
   push:
     branches:
-      - test
+      - main
 
 jobs:
   build:
@@ -63,9 +63,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-         
-
-
             APP_DIR="/home/${{ secrets.USERNAME }}/app"
             if [ -d "$APP_DIR" ]; then
               rm -rf "$APP_DIR"
@@ -74,7 +71,7 @@ jobs:
             mkdir -p "$APP_DIR"
             echo "Directory created at $APP_DIR."
             cd "$APP_DIR"
-            git clone --branch test --single-branch https://github.com/abrahamkoloboe27/ATUT-DevOps.git .
+            git clone  https://github.com/abrahamkoloboe27/ATUT-DevOps.git 
             echo "Repository cloned."
             docker compose pull
             docker compose up -d --remove-orphans
