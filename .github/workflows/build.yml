@@ -55,11 +55,11 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         script: |
-          echo '#!/bin/bash' > ~/deploy.sh
-          echo 'mkdir -p ~/app' >> ~/deploy.sh
-          echo 'cd ~/app' >> ~/deploy.sh
+          #!/bin/bash
+          COMMIT_HASH=${{ env.COMMIT_HASH }}
+          mkdir -p ~/app/$COMMIT_HASH
+          cd ~/app/$COMMIT_HASH
           echo 'cat << EOF > docker-compose.yml' >> ~/deploy.sh
-          echo 'version: "3.8"' >> ~/deploy.sh
           echo 'services:' >> ~/deploy.sh
           echo '  api:' >> ~/deploy.sh
           echo '    image: rg.fr-par.scw.cloud/atut-group-1/backend:${{ env.COMMIT_HASH }}' >> ~/deploy.sh
