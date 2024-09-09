@@ -30,7 +30,7 @@ jobs:
           --platform linux/amd64 \
           --build-arg COMMIT_HASH=${{ env.COMMIT_HASH }} \
           -t rg.fr-par.scw.cloud/atut-group-1/hash-test-backend:${{ env.COMMIT_HASH }} \
-          -t rg.fr-par.scw.cloud/atut-group-1/backend:latest \
+          -t rg.fr-par.scw.cloud/atut-group-1/hash-test-backend:latest \
           --push \
           ./backend
 
@@ -40,7 +40,7 @@ jobs:
           --platform linux/amd64 \
           --build-arg COMMIT_HASH=${{ env.COMMIT_HASH }} \
           -t rg.fr-par.scw.cloud/atut-group-1/hash-test-frontend:${{ env.COMMIT_HASH }} \
-          -t rg.fr-par.scw.cloud/atut-group-1/frontend:latest \
+          -t rg.fr-par.scw.cloud/atut-group-1/hash-test-frontend:latest \
           --push \
           ./frontend
 
